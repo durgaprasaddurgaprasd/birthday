@@ -2,12 +2,14 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HAPPY BIRTHDAY PURI</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -18,6 +20,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            touch-action: manipulation;
         }
         
         /* Starry Night Background */
@@ -52,7 +55,7 @@
         
         .heart {
             position: absolute;
-            font-size: 24px;
+            font-size: 16px;
             color: #ff69b4;
             animation: float-up 6s linear infinite;
             opacity: 0;
@@ -66,16 +69,16 @@
             flex-grow: 1;
             width: 100%;
             z-index: 100;
-            padding: 20px;
+            padding: 15px;
         }
         
         .birthday-text {
-            font-size: 2.5em;
+            font-size: 1.8em;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             animation: rainbow 8s linear infinite, float 3s ease-in-out infinite;
-            text-shadow: 0 0 20px currentColor;
+            text-shadow: 0 0 10px currentColor;
             background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
             -webkit-background-clip: text;
             background-clip: text;
@@ -84,14 +87,14 @@
         }
         
         .birthday-image {
-            width: 280px;
-            height: 280px;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
             object-fit: cover;
-            border: 5px solid;
+            border: 4px solid;
             animation: rainbow-border 8s linear infinite, pulse 2s ease infinite;
-            box-shadow: 0 0 40px rgba(255,255,255,0.8);
-            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(255,255,255,0.8);
+            margin: 15px 0;
         }
         
         .message-button {
@@ -100,29 +103,29 @@
             animation: gradient 8s ease infinite;
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 1.2em;
+            padding: 12px 25px;
+            font-size: 1em;
             border-radius: 50px;
             cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            margin-top: 15px;
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
             transition: transform 0.3s;
             text-decoration: none;
             z-index: 101;
         }
         
-        .message-button:hover {
-            transform: scale(1.1);
+        .message-button:hover, .message-button:active {
+            transform: scale(1.05);
         }
         
         /* Music player controls */
         .music-controls {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 15px;
+            right: 15px;
             z-index: 200;
             background: rgba(0,0,0,0.7);
-            padding: 10px;
+            padding: 8px;
             border-radius: 50px;
             display: flex;
             align-items: center;
@@ -133,12 +136,13 @@
             background: none;
             border: none;
             color: white;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            margin: 0 5px;
+            margin: 0 4px;
+            padding: 5px;
         }
         
-        .music-controls button:hover {
+        .music-controls button:hover, .music-controls button:active {
             color: #ff69b4;
         }
         
@@ -167,13 +171,13 @@
         
         @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
             100% { transform: translateY(0px); }
         }
         
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
         
@@ -209,6 +213,27 @@
             left: 0;
             z-index: 1;
         }
+        
+        /* Media Queries for larger screens */
+        @media (min-width: 768px) {
+            .birthday-text {
+                font-size: 2.5em;
+            }
+            
+            .birthday-image {
+                width: 280px;
+                height: 280px;
+            }
+            
+            .message-button {
+                padding: 15px 30px;
+                font-size: 1.2em;
+            }
+            
+            .heart {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -240,7 +265,9 @@
         // Create starry background
         function createStars() {
             const starsContainer = document.getElementById('stars');
-            for (let i = 0; i < 200; i++) {
+            const starCount = window.innerWidth < 768 ? 150 : 200;
+            
+            for (let i = 0; i < starCount; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
                 star.style.left = Math.random() * 100 + 'vw';
@@ -256,6 +283,7 @@
         function createHearts() {
             const container = document.getElementById('heartsContainer');
             const heartSymbols = ['♥', '❤️', '💖', '💗', '💓'];
+            const heartInterval = window.innerWidth < 768 ? 500 : 300;
             
             setInterval(() => {
                 const heart = document.createElement('div');
@@ -263,13 +291,13 @@
                 heart.innerHTML = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
                 heart.style.left = Math.random() * 100 + 'vw';
                 heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
-                heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
+                heart.style.fontSize = (Math.random() * 10 + 10) + 'px';
                 container.appendChild(heart);
                 
                 setTimeout(() => {
                     heart.remove();
                 }, 6000);
-            }, 300);
+            }, heartInterval);
         }
         
         // Music controls
@@ -301,6 +329,30 @@
                 bgMusic.pause();
                 bgMusic.currentTime = 0;
             });
+            
+            // Add touch support
+            playBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                bgMusic.play();
+            });
+            
+            pauseBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                bgMusic.pause();
+            });
+            
+            stopBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            });
+        }
+        
+        // Handle window resize
+        function handleResize() {
+            const canvas = document.querySelector('canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
         
         // Initialize
@@ -308,24 +360,34 @@
             createStars();
             createHearts();
             setupMusicControls();
+            handleResize();
+            
+            // Prevent default touch behavior
+            document.addEventListener('touchmove', function(e) {
+                if (e.target.className !== 'message-button') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         });
         
-        // Fireworks script
+        window.addEventListener('resize', handleResize);
+        
+        // Fireworks script (optimized for mobile)
         $(function(){
             var c= document.querySelector('canvas'),
             ctx=c.getContext('2d'),
             width=c.width=window.innerWidth,
             height=c.height=window.innerHeight,
-            n_stars=500,
+            n_stars=window.innerWidth < 768 ? 300 : 500,
             stars=[],
             twinkleFactor=.6,
-            maxStarRadius=8,
+            maxStarRadius=window.innerWidth < 768 ? 6 : 8,
             fw1,fw2,fw3,fw4,fw5,fw7,fw8,fw6,
-            minStrength=2,
-            maxStrength=15,
-            minTrails=10,
-            maxTrails=40,
-            particleRadius=2,
+            minStrength=window.innerWidth < 768 ? 1.5 : 2,
+            maxStrength=window.innerWidth < 768 ? 10 : 15,
+            minTrails=window.innerWidth < 768 ? 8 : 10,
+            maxTrails=window.innerWidth < 768 ? 30 : 40,
+            particleRadius=window.innerWidth < 768 ? 1.5 : 2,
             trailLength=5,
             delay=.05,
             LIFE=140,
