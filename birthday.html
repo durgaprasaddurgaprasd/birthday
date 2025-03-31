@@ -255,7 +255,6 @@
     
     <audio id="bgMusic" loop>
         <source src="WhatsApp Audio 2025-03-30 at 21.21.20_2184e937.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
     </audio>
     
     <canvas></canvas>
@@ -301,60 +300,88 @@
         }
         
         // Music controls
-        function setupMusicControls() {
-            const bgMusic = document.getElementById('bgMusic');
-            const playBtn = document.getElementById('playBtn');
-            const pauseBtn = document.getElementById('pauseBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            
-            // Try to autoplay (may be blocked by browser)
-            bgMusic.volume = 0.5;
+       
+           // Music controls with improved autoplay
+function setupMusicControls() {
+    const bgMusic = document.getElementById('bgMusic');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    
+    // Set initial volume
+    bgMusic.volume = 0.5;
+    
+    // Try to autoplay immediately
+    tryAutoplay();
+    
+    // Also try to autoplay on any user interaction
+    document.addEventListener('click', tryAutoplay);
+    document.addEventListener('touchstart', tryAutoplay);
+    document.addEventListener('keydown', tryAutoplay);
+    
+    function tryAutoplay() {
+        if (bgMusic.paused) {
             const playPromise = bgMusic.play();
-            
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    console.log("Autoplay prevented, user interaction required");
+                    console.log("Autoplay prevented, showing controls");
+                    // You could optionally show the music controls here
                 });
             }
-            
-            playBtn.addEventListener('click', () => {
-                bgMusic.play();
-            });
-            
-            pauseBtn.addEventListener('click', () => {
-                bgMusic.pause();
-            });
-            
-            stopBtn.addEventListener('click', () => {
-                bgMusic.pause();
-                bgMusic.currentTime = 0;
-            });
-            
-            // Add touch support
-            playBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                bgMusic.play();
-            });
-            
-            pauseBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                bgMusic.pause();
-            });
-            
-            stopBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                bgMusic.pause();
-                bgMusic.currentTime = 0;
-            });
         }
-        
-        // Handle window resize
-        function handleResize() {
-            const canvas = document.querySelector('canvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+    }
+    
+    // Regular control setup
+    playBtn.addEventListener('click', () => {
+        bgMusic.play();
+    });
+    
+    pauseBtn.addEventListener('click', () => {
+        bgMusic.pause();
+    });
+    
+    stopBtn.addEventListener('click', () => {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+    });
+    
+    // Touch support
+    playBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        bgMusic.play();
+    });
+    
+    pauseBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        bgMusic.pause();
+    });
+    
+    stopBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+    });
+    
+    // Handle window focus/blur for better mobile behavior
+    window.addEventListener('blur', () => {
+        if (!bgMusic.paused) {
+            bgMusic.pause();
         }
-        
+    });
+    
+    window.addEventListener('focus', () => {
+        if (bgMusic.paused) {
+            tryAutoplay();
+        }
+    });
+}
+
+// Handle window resize (keep this if you need it)
+function handleResize() {
+    const canvas = document.querySelector('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             createStars();
