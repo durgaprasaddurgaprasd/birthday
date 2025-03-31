@@ -2,8 +2,16 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Special Birthday Message</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: white;
@@ -36,6 +44,7 @@
             font-size: 2.2em;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             position: relative;
+            animation: rainbow 8s linear infinite;
         }
         
         h1:after {
@@ -59,7 +68,7 @@
         .heart {
             color: #ff7aa8;
             display: inline-block;
-            animation: float 3s ease-in-out infinite;
+            animation: float 3s ease-in-out infinite, pulse 2s ease infinite;
         }
         
         .back-button {
@@ -82,9 +91,28 @@
             box-shadow: 0 6px 20px rgba(255, 122, 168, 0.4);
         }
         
+        /* Starry Night Background */
+        #stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 5s infinite;
+        }
+        
         /* Floating hearts animation */
         .floating-hearts {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -125,24 +153,69 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
+        
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0.2; transform: scale(1); }
+        }
+        
+        @keyframes rainbow {
+            0% { color: #ff0000; }
+            14% { color: #ff7f00; }
+            28% { color: #ffff00; }
+            42% { color: #00ff00; }
+            57% { color: #0000ff; }
+            71% { color: #4b0082; }
+            85% { color: #9400d3; }
+            100% { color: #ff0000; }
+        }
+        
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
     </style>
 </head>
 <body>
+    <div id="stars"></div>
     <div class="floating-hearts" id="heartsContainer"></div>
+    <canvas></canvas>
     
     <div class="message-card">
         <h1>Happy Birthday PURI!</h1>
-        <p><span class="heart"></span> I wish all your dreams come true <span class="heart"></span></p>
+        <p><span class="heart">❤️</span> I wish all your dreams come true <span class="heart">❤️</span></p>
         <p><span class="heart">♾️</span> Thank you for being such a wonderful friend <span class="heart">♾️</span></p>
         <p>May your day be filled with joy and beautiful moments!</p>
         <a href="birthday.html" class="back-button">Back to Celebration</a>
     </div>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script>
+        // Create starry background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = window.innerWidth < 768 ? 150 : 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.top = Math.random() * 100 + 'vh';
+                star.style.animationDelay = Math.random() * 5 + 's';
+                star.style.width = (Math.random() * 3 + 1) + 'px';
+                star.style.height = star.style.width;
+                starsContainer.appendChild(star);
+            }
+        }
+        
         // Create floating hearts
         function createHearts() {
             const container = document.getElementById('heartsContainer');
             const heartSymbols = ['♾️', '❤️', '💖', '💗', '💓','♾️'];
+            const heartInterval = window.innerWidth < 768 ? 500 : 300;
             
             setInterval(() => {
                 const heart = document.createElement('div');
@@ -156,13 +229,189 @@
                 setTimeout(() => {
                     heart.remove();
                 }, 6000);
-            }, 300);
+            }, heartInterval);
         }
         
-        // Initialize
+        // Initialize animations
         document.addEventListener('DOMContentLoaded', function() {
+            createStars();
             createHearts();
+            initFireworks();
         });
+        
+        // Fireworks script
+        function initFireworks() {
+            var c = document.querySelector('canvas'),
+                ctx = c.getContext('2d'),
+                width = c.width = window.innerWidth,
+                height = c.height = window.innerHeight,
+                n_stars = window.innerWidth < 768 ? 300 : 500,
+                stars = [],
+                twinkleFactor = .6,
+                maxStarRadius = window.innerWidth < 768 ? 6 : 8,
+                fw1, fw2, fw3, fw4, fw5, fw7, fw8, fw6,
+                minStrength = window.innerWidth < 768 ? 1.5 : 2,
+                maxStrength = window.innerWidth < 768 ? 10 : 15,
+                minTrails = window.innerWidth < 768 ? 8 : 10,
+                maxTrails = window.innerWidth < 768 ? 30 : 40,
+                particleRadius = window.innerWidth < 768 ? 1.5 : 2,
+                trailLength = 5,
+                delay = .05,
+                LIFE = 140,
+                g = 5e-2,
+                D = 1e-3;
+            
+            var Particle = function(x, y, vx, vy, ax, ay, colour) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.ax = ax;
+                this.ay = ay;
+                this.life = LIFE;
+                this.path = [];
+                this.colour = colour;
+                this.r = particleRadius;
+                
+                this.update = function() {
+                    this.life--;
+                    if (this.path.length >= trailLength)
+                        this.path.shift();
+                    this.path.push([this.x, this.y])
+                    this.vy += this.ay;
+                    this.vx += this.ax;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                }
+                
+                this.draw = function() {
+                    var opacity = ~~(this.life * 100 / LIFE) / 100;
+                    ctx.fillStyle = 'rgba(' + this.colour + (opacity * 0.4) + ')';
+                    if (this.life > LIFE * 0.95)
+                        ctx.fillStyle = '#0000ff';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - this.r, this.y);
+                    var i = this.path.length - 1;
+                    ctx.lineTo(this.path[0][0], this.path[0][1]);
+                    ctx.lineTo(this.x + this.r, this.y);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.fillStyle = 'rgba(' + this.colour + opacity + ')';
+                    if (this.life > LIFE * 0.95)
+                        ctx.fillStyle = '#00ff00';
+                    ctx.beginPath();
+                    ctx.arc(~this.x, ~this.y, this.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            };
+            
+            var Firework = function() {
+                this.x = width * (Math.random() * 0.8 + 0.1);
+                this.y = height * (Math.random() * 0.8 + 0.1);
+                this.strength = Math.random() * (maxStrength - minStrength) + minStrength;
+                this.colour = ~(Math.random() * 255) + ',' + (Math.random() * 255) + ',' + ~(Math.random() * 255) + '+';
+                this.life = 0;
+                this.particles = (function(x, y, strength, colour) {
+                    var p = [];
+                    var n = ~~(Math.random() * (maxTrails - minTrails)) + minTrails;
+                    var ay = g;
+                    for (var i = n; i--;) {
+                        var ax = D;
+                        var angle = i * Math.PI * 2 / n;
+                        if (angle < Math.PI) ax *= -1;
+                        var vx = strength * Math.sin(angle);
+                        var vy = strength * Math.cos(angle);
+                        p.push(new Particle(x, y, vx, vy, ax, ay, colour));
+                    }
+                    return p;
+                })(this.x, this.y, this.strength, this.colour);
+                
+                this.update = function() {
+                    this.life++;
+                    if (this.life < 0) return;
+                    for (var i = this.particles.length; i--;) {
+                        this.particles[i].update();
+                        this.particles[i].draw();
+                    }
+                }
+            };
+            
+            var Star = function() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * maxStarRadius;
+                this.b = ~~(Math.random() * 100) / 100;
+            }
+            
+            Star.prototype.draw = function() {
+                this.b += twinkleFactor * (Math.random() - .5);
+                ctx.fillStyle = 'rgba(255,0,0,' + this.b + ')';
+                ctx.beginPath();
+                ctx.arc(~this.x, ~this.y, this.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            }
+            
+            function createFireworkStars() {
+                for (var i = n_stars; i--;)
+                    stars.push(new Star);
+            }
+            
+            function main() {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(0, 0, width, height);
+                for (var i = n_stars; i--;)
+                    stars[i].draw();
+                fw1.update();
+                fw2.update();
+                fw3.update();
+                fw4.update();
+                fw5.update();
+                fw6.update();
+                fw7.update();
+                fw8.update();
+                if (fw1.life == LIFE * delay) {
+                    fw2 = new Firework;
+                    fw4 = new Firework;
+                }
+                if (fw5.life == LIFE * delay) {
+                    fw6 = new Firework;
+                    fw8 = new Firework;
+                }
+                if (fw2.life == LIFE * delay) {
+                    fw1 = new Firework;
+                    fw3 = new Firework;
+                }
+                if (fw6.life == LIFE * delay) {
+                    fw5 = new Firework;
+                    fw7 = new Firework;
+                }
+                
+                window.requestAnimationFrame(main);
+            }
+            
+            function init() {
+                fw1 = new Firework;
+                fw2 = new Firework;
+                fw3 = new Firework;
+                fw4 = new Firework;
+                fw5 = new Firework;
+                fw6 = new Firework;
+                fw7 = new Firework;
+                fw8 = new Firework;
+                fw2.life = -LIFE * delay;
+                fw4.life = -LIFE * delay;
+                fw6.life = -LIFE * delay;
+                fw8.life = -LIFE * delay;
+                
+                createFireworkStars();
+                main();
+            }
+            
+            init();
+        }
     </script>
 </body>
 </html>

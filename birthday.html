@@ -158,6 +158,7 @@
             border-radius: 20px;
             z-index: 1000;
             display: none;
+            font-size: 14px;
         }
         
         /* Animations */
@@ -247,6 +248,10 @@
             .heart {
                 font-size: 24px;
             }
+            
+            .music-prompt {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -256,7 +261,7 @@
     
     <div class="birthday-content">
         <h1 class="birthday-text">HAPPY BIRTHDAY PURI</h1>
-        <img src="image1.jpg" alt="Birthday" class="birthday-image">
+        <img src="image2.jpg" alt="Birthday" class="birthday-image">
         <a href="message.html" class="message-button">Message For You ♥</a>
     </div>
     
@@ -328,43 +333,43 @@
             bgMusic.volume = 0.5;
             
             // First attempt to play (will likely fail in most browsers)
-            const initialPlayAttempt = bgMusic.play().catch(e => {});
-            
-            // Function to enable audio
-            function enableAudio() {
-                bgMusic.play()
-                    .then(() => {
-                        musicPrompt.style.display = 'none';
-                        // Store permission in localStorage
-                        localStorage.setItem('audioPermission', 'granted');
-                    })
-                    .catch(e => {
-                        musicPrompt.style.display = 'block';
-                        setTimeout(() => {
+            bgMusic.play().catch(e => {
+                // Show prompt if autoplay fails
+                musicPrompt.style.display = 'block';
+                
+                // Try to play on any user interaction
+                const tryPlayOnInteraction = () => {
+                    bgMusic.play()
+                        .then(() => {
                             musicPrompt.style.display = 'none';
-                        }, 3000);
-                    });
-            }
+                            // Store permission for future visits
+                            localStorage.setItem('audioPermission', 'granted');
+                            // Remove event listeners after success
+                            document.removeEventListener('click', tryPlayOnInteraction);
+                            document.removeEventListener('touchstart', tryPlayOnInteraction);
+                        })
+                        .catch(e => {
+                            // Keep prompt visible if still blocked
+                            musicPrompt.style.display = 'block';
+                        });
+                };
+                
+                // Try again on user interaction
+                document.addEventListener('click', tryPlayOnInteraction);
+                document.addEventListener('touchstart', tryPlayOnInteraction);
+            });
             
             // Check if we have previous permission
             if (localStorage.getItem('audioPermission') === 'granted') {
-                enableAudio();
-            } else {
-                musicPrompt.style.display = 'block';
-                setTimeout(() => {
-                    musicPrompt.style.display = 'none';
-                }, 3000);
+                bgMusic.play().catch(e => {
+                    musicPrompt.style.display = 'block';
+                });
             }
-            
-            // Try again when user interacts with page
-            const interactionEvents = ['click', 'touchstart', 'keydown'];
-            interactionEvents.forEach(event => {
-                document.addEventListener(event, enableAudio, { once: true });
-            });
             
             // Regular control setup
             playBtn.addEventListener('click', () => {
                 bgMusic.play();
+                musicPrompt.style.display = 'none';
             });
             
             pauseBtn.addEventListener('click', () => {
@@ -380,6 +385,7 @@
             playBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 bgMusic.play();
+                musicPrompt.style.display = 'none';
             });
             
             pauseBtn.addEventListener('touchend', (e) => {
