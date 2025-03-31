@@ -253,7 +253,7 @@
         <button id="stopBtn">■</button>
     </div>
     
-    <audio id="bgMusic" loop>
+    <audio id="bgMusic" loop autoplay>
         <source src="WhatsApp Audio 2025-03-30 at 21.21.20_2184e937.mp3" type="audio/mpeg">
     </audio>
     
@@ -301,35 +301,39 @@
         
         // Music controls
        
-           // Music controls with improved autoplay
+           // Music controls with auto-play
 function setupMusicControls() {
     const bgMusic = document.getElementById('bgMusic');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
     
-    // Set initial volume
+    // Set initial volume (0.5 = 50% volume)
     bgMusic.volume = 0.5;
     
-    // Try to autoplay immediately
-    tryAutoplay();
-    
-    // Also try to autoplay on any user interaction
-    document.addEventListener('click', tryAutoplay);
-    document.addEventListener('touchstart', tryAutoplay);
-    document.addEventListener('keydown', tryAutoplay);
-    
-    function tryAutoplay() {
-        if (bgMusic.paused) {
-            const playPromise = bgMusic.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.log("Autoplay prevented, showing controls");
-                    // You could optionally show the music controls here
+    // Auto-play function with multiple attempts
+    function autoPlayMusic() {
+        // First try to play immediately
+        const playPromise = bgMusic.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                // If blocked, wait for user interaction
+                console.log("Auto-play blocked, waiting for interaction");
+                
+                // Try again when user interacts with page
+                const interactionEvents = ['click', 'touchstart', 'keydown'];
+                interactionEvents.forEach(event => {
+                    document.addEventListener(event, () => {
+                        bgMusic.play().catch(e => console.log("Still blocked"));
+                    }, { once: true }); // Only try once per event type
                 });
-            }
+            });
         }
     }
+    
+    // First attempt to auto-play
+    autoPlayMusic();
     
     // Regular control setup
     playBtn.addEventListener('click', () => {
@@ -362,25 +366,14 @@ function setupMusicControls() {
         bgMusic.currentTime = 0;
     });
     
-    // Handle window focus/blur for better mobile behavior
-    window.addEventListener('blur', () => {
-        if (!bgMusic.paused) {
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
             bgMusic.pause();
+        } else {
+            bgMusic.play().catch(e => console.log("Resume blocked"));
         }
     });
-    
-    window.addEventListener('focus', () => {
-        if (bgMusic.paused) {
-            tryAutoplay();
-        }
-    });
-}
-
-// Handle window resize (keep this if you need it)
-function handleResize() {
-    const canvas = document.querySelector('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 }
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
