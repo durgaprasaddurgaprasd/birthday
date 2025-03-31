@@ -253,7 +253,7 @@
         <button id="stopBtn">■</button>
     </div>
     
-    <audio id="bgMusic" loop autoplay>
+    <audio id="bgMusic" loop>
         <source src="WhatsApp Audio 2025-03-30 at 21.21.20_2184e937.mp3" type="audio/mpeg">
     </audio>
     
@@ -301,7 +301,7 @@
         
         // Music controls
        
-           // Music controls with auto-play
+           // Music controls with reliable auto-play
 function setupMusicControls() {
     const bgMusic = document.getElementById('bgMusic');
     const playBtn = document.getElementById('playBtn');
@@ -311,29 +311,50 @@ function setupMusicControls() {
     // Set initial volume (0.5 = 50% volume)
     bgMusic.volume = 0.5;
     
-    // Auto-play function with multiple attempts
-    function autoPlayMusic() {
-        // First try to play immediately
-        const playPromise = bgMusic.play();
-        
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                // If blocked, wait for user interaction
-                console.log("Auto-play blocked, waiting for interaction");
-                
-                // Try again when user interacts with page
-                const interactionEvents = ['click', 'touchstart', 'keydown'];
-                interactionEvents.forEach(event => {
-                    document.addEventListener(event, () => {
-                        bgMusic.play().catch(e => console.log("Still blocked"));
-                    }, { once: true }); // Only try once per event type
-                });
+    // First attempt to play (will likely fail in most browsers)
+    const initialPlayAttempt = bgMusic.play().catch(e => {});
+    
+    // Create a subtle prompt for interaction
+    const musicPrompt = document.createElement('div');
+    musicPrompt.innerHTML = '🔊 Tap anywhere to enable music';
+    musicPrompt.style.position = 'fixed';
+    musicPrompt.style.bottom = '20px';
+    musicPrompt.style.left = '50%';
+    musicPrompt.style.transform = 'translateX(-50%)';
+    musicPrompt.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    musicPrompt.style.color = 'white';
+    musicPrompt.style.padding = '10px 20px';
+    musicPrompt.style.borderRadius = '20px';
+    musicPrompt.style.zIndex = '1000';
+    musicPrompt.style.display = 'none';
+    document.body.appendChild(musicPrompt);
+    
+    // Function to enable audio
+    function enableAudio() {
+        bgMusic.play()
+            .then(() => {
+                musicPrompt.style.display = 'none';
+                // Store permission in localStorage
+                localStorage.setItem('audioPermission', 'granted');
+            })
+            .catch(e => {
+                musicPrompt.style.display = 'block';
+                setTimeout(() => {
+                    musicPrompt.style.display = 'none';
+                }, 3000);
             });
-        }
     }
     
-    // First attempt to auto-play
-    autoPlayMusic();
+    // Check if we have previous permission
+    if (localStorage.getItem('audioPermission') === 'granted') {
+        enableAudio();
+    }
+    
+    // Try again when user interacts with page
+    const interactionEvents = ['click', 'touchstart', 'keydown'];
+    interactionEvents.forEach(event => {
+        document.addEventListener(event, enableAudio, { once: true });
+    });
     
     // Regular control setup
     playBtn.addEventListener('click', () => {
@@ -368,10 +389,8 @@ function setupMusicControls() {
     
     // Handle page visibility changes
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            bgMusic.pause();
-        } else {
-            bgMusic.play().catch(e => console.log("Resume blocked"));
+        if (!document.hidden && !bgMusic.paused) {
+            bgMusic.play().catch(e => {});
         }
     });
 }
